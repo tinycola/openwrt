@@ -4,8 +4,11 @@ local e="mwan3 status | grep -c \"is online and tracking is active\""
 local e=io.popen(e,"r")
 local t=e:read("*a")
 e:close()
-m=Map("syncdial",translate("多线多拨"),
-translate("使用macvlan驱动创建多个虚拟WAN口，支持并发多拨 <br />当前在线接口数量：")..t)
+m=Map("syncdial",translate("多线多拨Syncppp增强版"),
+translate("使用macvlan驱动创建多个虚拟WAN口，修改pppd源码实现同步拨号，真正并发多拨。<font color=\"red\">多拨请耐心等待</font><br />当前在线接口数量：")..t)
+function m.on_before_apply(self)
+    luci.sys.call("mkdir -p /tmp/originconfig && cp -rf /etc/config/syncdial /tmp/originconfig/")
+end
 s=m:section(TypedSection,"syncdial",translate(" "))
 s.anonymous=true
 o=s:option(Flag,"enabled","启用")
@@ -49,6 +52,9 @@ o.datatype="range(0,248)"
 o.optional=false
 o.default=2
 o:depends("dial_type","2")
+o=s:option(Flag,"enablev6","启用虚拟接口 ipv6")
+o.rmempty=false
+o.default=1
 o=s:option(Value,"dialwait","重拨等待时间","重拨时，接口全部下线后下一次拨号前的等待时间。单位：秒 最小值：5秒")
 o.datatype="and(uinteger,min(5))"
 o.optional=false
